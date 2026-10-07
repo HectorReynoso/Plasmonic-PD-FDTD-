@@ -1,0 +1,464 @@
+############################################################
+#
+# SI - PMMA/AU PLASMONIC STRUCTURE
+#
+# FDTD - Ansys Lumerical 2025 R1.3
+#
+# PARAMETRIZED STRUCTURE
+#
+# X = propagation direction
+# Y = lateral direction
+# Z = vertical direction
+#
+# STRUCTURE:
+
+############################################################
+# CLEAN START
+############################################################
+
+clear;
+switchtolayout;
+deleteall;
+
+############################################################
+# WAVELENGTH
+############################################################
+
+lambda0 = 1.55e-6;
+
+
+############################################################
+# ==========================================================
+# MAIN PARAMETER
+# ==========================================================
+############################################################
+
+Si_W_in = 440e-9;
+Si_W_min = 70e-9;
+Si_H = 220e-9;
+
+# GOLD / SILVER
+# ==========================================================
+############################################################
+
+Au_W = 1.0e-6; #600e-9;
+Au_H = Si_H;
+# SiO2
+# ==========================================================
+############################################################
+
+SiO2_bottom_H = 2e-6;
+SiO2_side = Au_W + Si_W_in/2;
+SiO2_top_H = 1e-6;
+
+
+# GE
+# ==========================================================
+############################################################
+
+Ge_W = Si_W_min;
+Ge_L = 1.0e-6;
+Ge_H = Si_H;
+
+############################################################
+# ==========================================================
+# MATERIALS
+# ==========================================================
+############################################################
+
+# SILICON
+# ==========================================================
+############################################################
+
+addmodelmaterial;
+set("name","Si");
+addmaterialproperties("CT","Si (Silicon)");
+
+# GERMANIUM
+# ==========================================================
+############################################################
+
+addmodelmaterial;
+set("name", "Ge");
+addmaterialproperties("CT", "Ge (Germanium)");
+
+# GOLD
+# ============================================================
+############################################################
+
+addmodelmaterial;
+set("name","Au");
+addmaterialproperties("CT","Au (Gold) - CRC");
+
+# SILVER
+# ============================================================
+############################################################
+
+addmodelmaterial;
+set("name","Ag");
+addmaterialproperties("CT","Ag (Silver) - CRC");
+
+############################################################
+# ==========================================================
+# LONGITUDES EN X
+# ==========================================================
+############################################################
+
+L_input = 12.0e-6;
+L_taper = 2.0e-6;
+L_Ge = 1.0e-6;
+#L_output = 0.0e-6;
+
+# TOTAL LENGTH
+# ==========================================================
+############################################################
+
+L_total = L_input + L_taper + L_Ge + L_taper;
+
+# POSICIONES X
+# ==========================================================
+############################################################
+
+x0 = -L_total/2;
+x1 = x0 + L_input;
+x2 = x1 + L_taper;
+x3 = x2 + L_Ge;
+x4 = x3 + L_taper;
+#x5 = x4 + L_output;
+
+# POSICIONES Z
+# ==========================================================
+############################################################
+
+Si_zmin = 0;
+Si_zmax = Si_H;
+#SiO2_zmax = Si_H + SiO2_top_H;
+Ge_zmin = Si_zmin;
+Ge_zmax = Si_zmax;
+Au_zmin = Si_zmin;
+Au_zmax = Si_zmax;
+
+############################################################
+# ==========================================================
+# SILICON
+# ==========================================================
+############################################################
+
+## SILICON TAPER 
+## ==========================================================
+#############################################################
+
+#addpoly;
+
+#set("name","Si_Taper_Left");
+#set("material","Si");
+#set("mesh order",1);
+#set("z min",Si_zmin);
+#set("z max",Si_zmax);
+#V = matrix(4,2);
+#V(1,1) = x1;
+#V(1,2) = -Si_W_in/2;
+#V(2,1) = x1;
+#V(2,2) = Si_W_in/2;
+#V(3,1) = x2;
+#V(3,2) = Si_W_min/2;
+#V(4,1) = x2;
+#V(4,2) = -Si_W_min/2;
+#set("vertices",V);
+
+############################################################
+# ==========================================================
+# GE
+# ==========================================================
+############################################################
+
+addrect;
+
+set("name","Ge");
+set("material","Ge");
+set("mesh order",2);
+set("x min",x2);
+set("x max",x3);
+set("y min",-Ge_W/2);
+set("y max",Ge_W/2);
+set("z min",Ge_zmin);
+set("z max",Ge_zmax);
+
+
+
+
+############################################################
+# ==========================================================
+#Silver LOWER PATH
+# ==========================================================
+############################################################
+
+addpoly;
+
+set("name","Ag_Lower_Path");
+set("material","Ag");
+set("mesh order",2);
+set("z min",Au_zmin);
+set("z max",Au_zmax);
+V = matrix(4,2);
+#V(1,1) = x1;
+#V(1,2) = -Si_W_in/2;
+V(1,1) = x2;
+V(1,2) = -Ge_W/2;
+V(2,1) = x3;
+V(2,2) = -Ge_W/2;
+V(3,1) = x3;
+V(3,2) = -Si_W_in/2-Au_W;   # -Ge_W/2-Au_W;
+V(4,1) = x2;
+V(4,2) = -Si_W_in/2-Au_W;    # -Ge_W/2-Au_W;
+#V(6,1) = x1;
+#V(6,2) = -Si_W_in/2-Au_W;
+set("vertices",V);
+
+
+############################################################
+# ==========================================================
+# GOLD UPPER PATH
+#
+# ==========================================================
+############################################################
+
+addpoly;
+set("name","Au_Upper_Path");
+set("material","Au");
+set("mesh order",2);
+set("z min",Au_zmin);
+set("z max",Au_zmax);
+V = matrix(4,2);
+#V(1,1) = x1;
+#V(1,2) = Si_W_in/2;
+V(1,1) = x2;
+V(1,2) = Ge_W/2;
+V(2,1) = x3;
+V(2,2) = Ge_W/2;
+V(3,1) = x3;
+V(3,2) = Si_W_in/2+Au_W; # Ge_W/2+Au_W;
+V(4,1) = x2;
+V(4,2) = Si_W_in/2+Au_W; #Ge_W/2+Au_W;
+#V(6,1) = x1;
+#V(6,2) = Si_W_in/2+Au_W;
+set("vertices",V);
+
+
+############################################################
+# ==========================================================
+# LOCAL MESH
+# ==========================================================
+############################################################
+
+addchargesolver;
+#set("norm length",220e-9);
+
+############################################################
+# GE DOPING
+############################################################
+
+#adddope;
+
+#set("name","Ge_Doping");
+#set("dopant type","n");
+#set("concentration",1e16);
+#set("x min",x2);
+#set("x max",x3);
+#set("y min",-Ge_W/2);
+#set("y max",Ge_W/2);
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+
+############################################################
+# BACKGROUND P DOPING
+############################################################
+
+adddope;
+
+set("name","P_Background");
+set("dopant type","p");
+set("concentration",1e15);
+set("x min",x2-0.5e-6);
+set("x max",x3+0.5e-6);
+set("y min",-Si_W_in/2-Au_W-0.5e-6);
+set("y max", Si_W_in/2+Au_W+0.5e-6);
+set("z min",-0.5e-6);
+set("z max", Si_H+0.5e-6);
+
+
+#####################################################
+# SIMULATION REGION
+#####################################################
+ 
+
+#select("simulation region");
+#set("dimension","2D Z-normal");
+#set("x min",x2);
+#set("x max",x3);
+#set("y min",-Si_W_in/2-Au_W);
+#set("y max", Si_W_in/2+Au_W);
+#set("z",Si_H/2);
+
+
+
+select("simulation region");
+set("dimension","3D");
+set("x min",x2);
+set("x max",x3);
+set("y min",-Si_W_in/2-Au_W);
+set("y max", Si_W_in/2+Au_W);
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+set("z min",0);
+set("z max",Si_H);
+############################################################
+# ==========================================================
+# CONTACT - UPPER GOLD
+# ==========================================================
+############################################################
+
+addelectricalcontact;
+set("name","emitter");
+set("bc mode","steady state");
+set("sweep type","single");
+set("voltage",0);
+set("surface type","solid");
+set("solid","Ag_Lower_Path");
+
+
+############################################################
+# ==========================================================
+# CONTACT - LOWER GOLD
+# ==========================================================
+############################################################
+
+addelectricalcontact;
+set("name","base");
+set("bc mode","steady state");
+set("sweep type","range");
+set("range start",-1);
+set("range stop",1);
+set("range num points",41);
+set("surface type","solid");
+set("solid","Au_Upper_Path");
+
+############################################################
+# ==========================================================
+# MONITORS
+# ==========================================================
+############################################################
+
+# CHARGE MONITOR - GE
+# ==========================================================
+############################################################
+
+#monitorPosition = 5.6e-6;
+
+#addjfluxmonitor;
+#set("name","CurrentFlux_Au-Ge-Ag");
+#set("monitor type",5);
+#set("x",monitorPosition);
+#set("y min",-SiO2_side);
+#set("y max",SiO2_side);
+#set("z min",0);
+#set("z max",Si_H );  
+
+# CHARGE MONITOR - Si
+# ==========================================================
+############################################################
+
+#addchargemonitor;
+#set("name","ChargeMonitor_Si");
+#set("monitor type",2);
+#set("x",0);
+#set("x span",Ge_L);
+#set("y",0);
+#set("y span",Ge_W);
+#set("z",(Ge_zmin+Ge_zmax)/2);
+#set("z span",Ge_H);
+
+# CHARGE MONITOR - Si
+# ==========================================================
+############################################################
+#addchargemonitor;
+#set("name","ChargeMonitor_3D");
+#set("monitor type",8);
+#set("x min",x2);
+#set("x max",x3);
+#set("y min",-Ge_W/2);
+#set("y max",Ge_W/2);
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+
+############################################################
+# AU-GE JUNCTION
+# P DIFFUSION
+############################################################
+
+#adddope;
+#set("name","Au_Ge_Diffusion");
+#set("dopant type","p");
+#set("concentration",1e19);
+#set("x min",x2);
+#set("x max",x3);
+#set("y min", Ge_W/2-10e-9 );
+#set("y max", Ge_W/2 );
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+#adddope;
+#set("name","Au_Ge_Diffusion_2");
+#set("dopant type","p");
+#set("concentration",1e20);
+#set("x min",x2);
+#set("x max",x3);
+#set("y min", 0 );
+#set("y max", Ge_W/2-10e-9);
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+
+adddiffusion;
+set("name","Au_Ge_Diffusion");
+set("dopant type","p");
+set("x min",x2);
+set("x max",x3);
+set("y min",Ge_W/2-10e-9);
+set("y max",Ge_W/2);
+set("z min",Ge_zmin);
+set("z max",Ge_zmax);
+############################################################
+# GE-AG JUNCTION
+# N DIFFUSION
+############################################################
+
+#adddope;
+#set("name","Ge_Ag_Diffusion");
+#set("dopant type","n");
+#set("concentration",1e19);
+#set("x min",x2);
+#set("x max",x3);
+#set("y min",-Ge_W/2);
+#set("y max",-Ge_W/2+10e-9);
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+
+#adddope;
+#set("name","Ge_Ag_Diffusion_2");
+#set("dopant type","n");
+#set("concentration",1e20);
+#set("x min",x2);
+#set("x max",x3);
+#set("y min",-Ge_W/2+10e-9);
+#set("y max",0);
+#set("z min",Ge_zmin);
+#set("z max",Ge_zmax);
+
+adddiffusion;
+set("name","Ge_Ag_Diffusion");
+set("dopant type","n");
+set("x min",x2);
+set("x max",x3);
+set("y min",-Ge_W/2);
+set("y max",-Ge_W/2+10e-9);
+set("z min",Ge_zmin);
+set("z max",Ge_zmax);
